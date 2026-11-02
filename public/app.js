@@ -342,20 +342,23 @@ async function renderAuth() {
 
   const nameInput = document.querySelector('#register-form input[name="fullName"]');
   const nameValidationMessage = 'Name should contain only letters and spaces.';
-  const loginForm = document.querySelector('#login-form');
-  const loginButton = loginForm.querySelector('button:not(.password-toggle)');
-  loginButton.classList.add('login-submit');
-  const loginError = document.createElement('div');
-  let loginPending = false;
-  loginError.className = 'notice error login-error';
-  loginError.setAttribute('role', 'alert');
-  loginError.hidden = true;
-  loginForm.querySelector('h2').insertAdjacentElement('afterend', loginError);
-  loginForm.querySelectorAll('input[name="email"], input[name="password"]')
-    .forEach(input => input.addEventListener('input', () => {
-      loginError.hidden = true;
-      loginError.textContent = '';
-    }));
+  const authForms = {};
+  for (const id of ['login-form', 'register-form']) {
+    const form = document.querySelector(`#${id}`);
+    const button = form.querySelector('button:not(.password-toggle)');
+    const error = document.createElement('div');
+    error.className = 'notice error';
+    error.setAttribute('role', 'alert');
+    error.hidden = true;
+    form.querySelector('h2').insertAdjacentElement('afterend', error);
+    form.querySelectorAll('input')
+      .forEach(input => input.addEventListener('input', () => {
+        error.hidden = true;
+        error.textContent = '';
+      }));
+    authForms[id] = { button, error, pending: false };
+  }
+  authForms['login-form'].button.classList.add('login-submit');
 
   const validateName = () => {
     const name = nameInput.value.trim();
@@ -383,15 +386,14 @@ async function renderAuth() {
   for (const id of ['login-form', 'register-form']) {
     document.querySelector(`#${id}`).addEventListener('submit', async e => {
       e.preventDefault();
-      if (id === 'login-form') {
-        if (loginPending) return;
-        loginPending = true;
-        loginError.hidden = true;
-        loginError.textContent = '';
-        loginButton.disabled = true;
-        loginButton.textContent = 'Logging in…';
-        loginButton.setAttribute('aria-busy', 'true');
-      }
+      const { button, error } = authForms[id];
+      if (authForms[id].pending) return;
+      authForms[id].pending = true;
+      error.hidden = true;
+      error.textContent = '';
+      button.disabled = true;
+      button.textContent = id === 'login-form' ? 'Logging in…' : 'Creating account…';
+      button.setAttribute('aria-busy', 'true');
 
       const form = Object.fromEntries(new FormData(e.target));
       if (id === 'register-form') form.fullName = form.fullName.trim();
@@ -409,19 +411,15 @@ async function renderAuth() {
         renderNav();
         renderDashboard();
       } catch (err) {
-        if (id === 'login-form') {
-          loginError.textContent = err.message;
-          loginError.hidden = false;
-        } else {
-          e.target.insertAdjacentHTML('afterbegin', notify(err.message, true));
-        }
+        error.textContent = err instanceof TypeError
+          ? 'Unable to reach Quizly. Make sure your device can connect to this server and try again.'
+          : err.message;
+        error.hidden = false;
       } finally {
-        if (id === 'login-form') {
-          loginPending = false;
-          loginButton.disabled = false;
-          loginButton.textContent = 'Log in';
-          loginButton.setAttribute('aria-busy', 'false');
-        }
+        authForms[id].pending = false;
+        button.disabled = false;
+        button.textContent = id === 'login-form' ? 'Log in' : 'Create account';
+        button.setAttribute('aria-busy', 'false');
       }
     });
   }
@@ -537,8 +535,18 @@ async function renderDashboard() {
   app.innerHTML = `
     <div class="dashboard-shell">
       <aside class="dashboard-sidebar" aria-label="Dashboard navigation">
-            <a class="dashboard-brand" href="#dashboard-home"><span class="dashboard-brand-mark" aria-hidden="true">Q</span>QUIZ<span>LY</span></a>
-        <nav class="dashboard-nav" aria-label="Main navigation">
+        <div class="dashboard-sidebar-header">
+          <a class="dashboard-brand" href="#dashboard-home"><span class="dashboard-brand-mark" aria-hidden="true">Q</span>QUIZ<span>LY</span></a>
+          <button class="dashboard-menu-toggle" id="dashboard-menu-toggle" type="button" aria-label="Open navigation menu" aria-controls="dashboard-nav" aria-expanded="false">
+            <span class="menu-icon-open" aria-hidden="true">☰</span>
+            <span class="menu-icon-close" aria-hidden="true">×</span>
+          </button>
+        </div>
+        <nav class="dashboard-nav" id="dashboard-nav" aria-label="Main navigation">
+          <div class="dashboard-nav-header">
+            <span>Navigation</span>
+            <button class="dashboard-menu-close" id="dashboard-menu-close" type="button" aria-label="Close navigation menu">×</button>
+          </div>
               ${isAdmin ? `
                 <a class="active" href="#dashboard-home" data-dashboard-view="dashboard"><span aria-hidden="true">⌂</span>Dashboard</a>
                 <a href="#available-quizzes" data-dashboard-view="quizzes"><span aria-hidden="true">▦</span>My Quizzes</a>
@@ -549,6 +557,7 @@ async function renderDashboard() {
                 <a href="#available-quizzes" data-category-slugs="java-programming,dsa"><span aria-hidden="true">⌘</span>Coding Practice</a>
                 <a href="#available-quizzes" data-category-slugs="dbms,computer-networks,operating-systems,software-engineering"><span aria-hidden="true">▤</span>Core CS Subjects</a>
                 <a href="#available-quizzes" data-category-slugs="placement-mock-tests"><span aria-hidden="true">◈</span>Placement Mock Tests</a>
+                <a href="#available-quizzes" data-category-slugs="company-tcs,company-infosys,company-wipro,company-accenture,company-deloitte,company-cognizant" data-practice-title="Company" data-practice-description="Practice quizzes for specific companies."><span aria-hidden="true">◇</span>Company</a>
                 <a href="#available-quizzes" data-category-slugs="company-placement-preparation,company-tcs,company-infosys,company-wipro,company-accenture,company-deloitte,company-cognizant" data-practice-title="Company Placement Preparation" data-practice-description="Practice company placement subjects and company-specific quizzes."><span aria-hidden="true">◇</span>Company Placement Preparation</a>
                 <a href="#available-quizzes" data-category-slugs="interview-preparation" data-practice-title="Interview Preparation" data-practice-description="Practice technical and behavioral interview topics."><span aria-hidden="true">◌</span>Interview Preparation</a>
                 <a href="#available-quizzes" data-category-slugs="placement-preparation"><span aria-hidden="true">◈</span>Placement Preparation</a>
@@ -834,6 +843,23 @@ async function renderDashboard() {
   `;
 
   document.querySelector('#dashboard-logout')?.addEventListener('click', logout);
+  const dashboardNav = document.querySelector('#dashboard-nav');
+  const dashboardMenuToggle = document.querySelector('#dashboard-menu-toggle');
+  const closeDashboardMenu = () => {
+    dashboardNav.classList.remove('is-open');
+    dashboardMenuToggle.setAttribute('aria-expanded', 'false');
+    dashboardMenuToggle.setAttribute('aria-label', 'Open navigation menu');
+  };
+  dashboardMenuToggle.addEventListener('click', () => {
+    const isOpen = dashboardNav.classList.toggle('is-open');
+    dashboardMenuToggle.setAttribute('aria-expanded', String(isOpen));
+    dashboardMenuToggle.setAttribute(
+      'aria-label',
+      isOpen ? 'Close navigation menu' : 'Open navigation menu'
+    );
+  });
+  document.querySelector('#dashboard-menu-close')
+    .addEventListener('click', closeDashboardMenu);
   document.querySelector('#start-first-quiz')?.addEventListener('click', () => {
     document.querySelector('#available-quizzes')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
@@ -972,6 +998,7 @@ async function renderDashboard() {
 
   document.querySelectorAll('.dashboard-nav a').forEach(link => {
     link.addEventListener('click', event => {
+      closeDashboardMenu();
       const view = link.dataset.dashboardView;
       const categorySlugs = link.dataset.categorySlugs
         ?.split(',')

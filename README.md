@@ -8,7 +8,7 @@ A DBMS mini project using HTML/CSS/JavaScript, Node.js/Express, and MySQL.
 2. Copy `.env.example` to `.env` and enter your MySQL password. Set `DB_PORT=3306` if MySQL uses its default port, or use the port selected during MySQL installation (for example, `3307`).
 3. Install packages: `npm install`.
 4. For an existing database, run `npm run db:migrate`. This safely adds categories, topics, quiz difficulty, supported question types, explanations, and seed keys without deleting existing rows. It is also safe to run on a fresh install.
-5. Start the app with `npm start`, visit `http://localhost:3000`, and register an account. Promote an account to admin with the SQL comment at the bottom of `database/schema.sql`.
+5. Start the app with `npm start` and visit `http://localhost:3000` on the laptop. To use a phone on the same trusted Wi-Fi network, open `http://<laptop-ip>:3000` on the phone (find the laptop address with `ipconfig`); allow Node.js through Windows Firewall on private networks if prompted. Do not use `localhost` on the phone, because that refers to the phone itself. Promote an account to admin with the SQL comment at the bottom of `database/schema.sql`.
 6. Run `npm run db:seed` to add the categories/topics and 32 published sample quizzes (405 questions total). The seed is repeatable, preserves quiz content when a seeded quiz has attempts, and refreshes its category/topic assignment.
 7. To seed only company placement and interview quizzes, run `npm run db:seed -- --company-interview-only`.
 8. To add only the seven Placement Preparation quizzes using the existing category and topics, run `npm run db:seed -- --placement-preparation-quizzes-only`. This scoped command does not update other categories or existing quiz content.

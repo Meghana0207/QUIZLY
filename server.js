@@ -395,11 +395,26 @@ app.post('/api/auth/register', async (req, res) => {
   } catch (error) {
     console.error('Registration failed:', error.code || error.message);
 
+    const databaseUnavailable = [
+      'ECONNREFUSED',
+      'ETIMEDOUT',
+      'PROTOCOL_CONNECTION_LOST',
+      'EHOSTUNREACH'
+    ].includes(error.code);
+    const databaseConfigurationError = [
+      'ER_ACCESS_DENIED_ERROR',
+      'ER_BAD_DB_ERROR'
+    ].includes(error.code);
+
     res.status(error.code === 'ER_DUP_ENTRY' ? 409 : 500).json({
       message:
         error.code === 'ER_DUP_ENTRY'
           ? 'This email is already registered.'
-          : 'Could not create account.'
+          : databaseUnavailable
+            ? 'Could not reach the account database. Please try again later.'
+            : databaseConfigurationError
+              ? 'The account service has a database configuration issue. Please contact the administrator.'
+              : 'Unable to create your account right now. Please try again.'
     });
   }
 });
@@ -1778,7 +1793,9 @@ app.get('*', (_, res) =>
   res.sendFile(path.join(__dirname, 'public', 'index.html'))
 );
 
-app.listen(
-  process.env.PORT || 3000,
-  () => console.log(`Quiz app: http://localhost:${process.env.PORT || 3000}`)
+const port = process.env.PORT || 3000;
+const host = process.env.HOST || '0.0.0.0';
+
+app.listen(port, host, () =>
+  console.log(`Quiz app listening on ${host}:${port}`)
 );
