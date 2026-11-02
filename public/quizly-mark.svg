@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="quizly-accent" x1="5" y1="5" x2="43" y2="43" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A779FF"/>
+      <stop offset="1" stop-color="#36C6FF"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="44" height="44" rx="14" fill="#101A3A" stroke="url(#quizly-accent)" stroke-width="1.5"/>
+  <path d="M12 14h17M12 20h12M12 26h7" stroke="#EAF7FF" stroke-linecap="round" stroke-width="2.5"/>
+  <circle cx="30" cy="30" r="7.5" fill="url(#quizly-accent)"/>
+  <path d="m26.8 30 2.1 2.1 4.4-4.5" stroke="#08142F" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"/>
+</svg>

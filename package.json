@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "db:migrate": "node database/migrate.js",
+    "db:seed": "node database/seed.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
