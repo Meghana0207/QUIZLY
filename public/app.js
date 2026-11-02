@@ -340,21 +340,61 @@ async function renderAuth() {
   document.body.classList.remove('dashboard-active');
   app.innerHTML = document.querySelector('#auth-template').innerHTML;
 
-  const passwordInput = document.querySelector('#login-form input[name="password"]');
-  const passwordToggle = document.querySelector('#login-form .password-toggle');
-  passwordToggle?.addEventListener('click', () => {
-    const isVisible = passwordInput.type === 'password';
-    passwordInput.type = isVisible ? 'text' : 'password';
-    passwordToggle.setAttribute('aria-pressed', String(isVisible));
-    passwordToggle.setAttribute('aria-label', isVisible ? 'Hide password' : 'Show password');
-    passwordToggle.querySelector('[data-password-show-icon]').hidden = isVisible;
-    passwordToggle.querySelector('[data-password-hide-icon]').hidden = !isVisible;
-  });
+  const nameInput = document.querySelector('#register-form input[name="fullName"]');
+  const nameValidationMessage = 'Name should contain only letters and spaces.';
+  const loginForm = document.querySelector('#login-form');
+  const loginButton = loginForm.querySelector('button:not(.password-toggle)');
+  loginButton.classList.add('login-submit');
+  const loginError = document.createElement('div');
+  let loginPending = false;
+  loginError.className = 'notice error login-error';
+  loginError.setAttribute('role', 'alert');
+  loginError.hidden = true;
+  loginForm.querySelector('h2').insertAdjacentElement('afterend', loginError);
+  loginForm.querySelectorAll('input[name="email"], input[name="password"]')
+    .forEach(input => input.addEventListener('input', () => {
+      loginError.hidden = true;
+      loginError.textContent = '';
+    }));
+
+  const validateName = () => {
+    const name = nameInput.value.trim();
+    nameInput.setCustomValidity(
+      /^[A-Za-z ]+$/.test(name) ? '' : nameValidationMessage
+    );
+  };
+  nameInput.addEventListener('input', validateName);
+  validateName();
+
+  for (const formId of ['login-form', 'register-form']) {
+    const passwordInput = document.querySelector(`#${formId} input[name="password"]`);
+    const passwordToggle = document.querySelector(`#${formId} .password-toggle`);
+
+    passwordToggle?.addEventListener('click', () => {
+      const isVisible = passwordInput.type === 'password';
+      passwordInput.type = isVisible ? 'text' : 'password';
+      passwordToggle.setAttribute('aria-pressed', String(isVisible));
+      passwordToggle.setAttribute('aria-label', isVisible ? 'Hide password' : 'Show password');
+      passwordToggle.querySelector('[data-password-show-icon]').hidden = isVisible;
+      passwordToggle.querySelector('[data-password-hide-icon]').hidden = !isVisible;
+    });
+  }
 
   for (const id of ['login-form', 'register-form']) {
     document.querySelector(`#${id}`).addEventListener('submit', async e => {
       e.preventDefault();
+      if (id === 'login-form') {
+        if (loginPending) return;
+        loginPending = true;
+        loginError.hidden = true;
+        loginError.textContent = '';
+        loginButton.disabled = true;
+        loginButton.textContent = 'Logging in…';
+        loginButton.setAttribute('aria-busy', 'true');
+      }
+
       const form = Object.fromEntries(new FormData(e.target));
+      if (id === 'register-form') form.fullName = form.fullName.trim();
 
       try {
         const result = await api(
@@ -369,7 +409,19 @@ async function renderAuth() {
         renderNav();
         renderDashboard();
       } catch (err) {
-        e.target.insertAdjacentHTML('afterbegin', notify(err.message, true));
+        if (id === 'login-form') {
+          loginError.textContent = err.message;
+          loginError.hidden = false;
+        } else {
+          e.target.insertAdjacentHTML('afterbegin', notify(err.message, true));
+        }
+      } finally {
+        if (id === 'login-form') {
+          loginPending = false;
+          loginButton.disabled = false;
+          loginButton.textContent = 'Log in';
+          loginButton.setAttribute('aria-busy', 'false');
+        }
       }
     });
   }

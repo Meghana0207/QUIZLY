@@ -436,3 +436,12 @@ body.dashboard-active .history-panel th,body.dashboard-active .history-panel td{
 .practice-view .practice-page-heading{display:flex}
 .practice-view #practice-route-message:not([hidden]){display:block}
 @media(max-width:520px){.practice-page-heading{align-items:flex-start;flex-direction:column;padding:15px}.practice-page-heading .button{width:100%;text-align:center}}
+body.dashboard-active .dashboard-quiz-card>.attempt{display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid rgba(196,181,253,.38);border-radius:9px;background:linear-gradient(110deg,#7C3AED,#0891B2);box-shadow:0 5px 16px rgba(124,58,237,.2);transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
+body.dashboard-active .dashboard-quiz-card>.attempt::after{content:"→";font-size:15px;line-height:1;transition:transform .18s ease}
+body.dashboard-active .dashboard-quiz-card>.attempt:hover{transform:translateY(-2px);box-shadow:0 9px 22px rgba(34,211,238,.18),0 5px 14px rgba(124,58,237,.2)}
+body.dashboard-active .dashboard-quiz-card>.attempt:hover::after{transform:translateX(3px)}
+body.dashboard-active .dashboard-quiz-card>.attempt:focus-visible,body.dashboard-active button.sidebar-logout:focus-visible{outline:2px solid #67E8F9;outline-offset:3px}
+body.dashboard-active button.sidebar-logout{min-height:42px;border:1px solid rgba(248,113,113,.2);border-radius:9px;background:rgba(127,29,29,.12);color:#FCA5A5;box-shadow:none;transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease}
+body.dashboard-active .sidebar-logout span{color:#F87171;transition:transform .18s ease}
+body.dashboard-active button.sidebar-logout:hover{transform:translateY(-1px);border-color:rgba(248,113,113,.36);background:rgba(127,29,29,.22);color:#FECACA;box-shadow:0 5px 14px rgba(127,29,29,.12)}
+body.dashboard-active .sidebar-logout:hover span{transform:translateX(2px)}

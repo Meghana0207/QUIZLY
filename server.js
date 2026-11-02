@@ -1,6 +1,6 @@
 
-require('dotenv').config();
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const https = require('https');
 const crypto = require('crypto');
 const express = require('express');
@@ -360,8 +360,16 @@ const establishSession = (req, user) =>
 
 app.post('/api/auth/register', async (req, res) => {
   const { fullName, email, password } = req.body;
+  const trimmedFullName =
+    typeof fullName === 'string' ? fullName.trim() : '';
 
-  if (!fullName || !email || !password || password.length < 6) {
+  if (!/^[A-Za-z ]+$/.test(trimmedFullName)) {
+    return res.status(400).json({
+      message: 'Name should contain only letters and spaces.'
+    });
+  }
+
+  if (!email || !password || password.length < 6) {
     return res.status(400).json({
       message: 'Enter your name, email, and a password of at least 6 characters.'
     });
@@ -371,7 +379,7 @@ app.post('/api/auth/register', async (req, res) => {
     const [result] = await pool.execute(
       'INSERT INTO users (full_name, email, password_hash) VALUES (?, ?, ?)',
       [
-        fullName.trim(),
+        trimmedFullName,
         email.trim().toLowerCase(),
         await bcrypt.hash(password, 12)
       ]
@@ -379,7 +387,7 @@ app.post('/api/auth/register', async (req, res) => {
 
     await establishSession(req, {
       id: result.insertId,
-      name: fullName.trim(),
+      name: trimmedFullName,
       role: 'student'
     });
 
